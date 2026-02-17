@@ -61,3 +61,19 @@ for a in elements:
     unique = list(set(gen))
     unique.sort()
     print("<", a , "> =", _set(gen), "=", _set(unique) )
+
+"""
+Zm x Zn cyclic
+"""
+m = 2
+n = 4
+
+for a in range(m):
+    for b in range(n):
+        print(f"\n(a,b)=({a},{b}):")
+        gen = [(k*a % m, k*b % n) for k in range(1,m*n)]
+        for i, g in enumerate(gen):
+            print(f"{i+1}*({a} mod {m}, {b} mod {n}) = {g}")
+        unique = list(set(gen))
+        unique.sort()
+        print("<",(a,b),"> =", _set(unique))

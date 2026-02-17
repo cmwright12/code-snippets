@@ -3,7 +3,7 @@
 # -------------------------
 
 def _sorted_list(s):
-    """Return a consistent order for readability."""
+    """Return a consistent order for readability across types."""
     return sorted(list(s), key=lambda x: (str(type(x)), str(x)))
 
 def _set_str(s):
@@ -67,6 +67,20 @@ def associativity_intersection(A, B, C):
     rhs = A & (B & C)
     return {"law": "Associativity (intersection)", "lhs": lhs, "rhs": rhs, "holds": lhs == rhs}
 
+# --- NEW: Distributive laws ---
+
+def distributive_union_over_intersection(A, B, C):
+    """A ∪ (B ∩ C) = (A ∪ B) ∩ (A ∪ C)"""
+    lhs = A | (B & C)
+    rhs = (A | B) & (A | C)
+    return {"law": "Distributive (union over intersection)", "lhs": lhs, "rhs": rhs, "holds": lhs == rhs}
+
+def distributive_intersection_over_union(A, B, C):
+    """A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C)"""
+    lhs = A & (B | C)
+    rhs = (A & B) | (A & C)
+    return {"law": "Distributive (intersection over union)", "lhs": lhs, "rhs": rhs, "holds": lhs == rhs}
+
 
 # -------------------------
 # Human-readable formatters
@@ -110,9 +124,30 @@ def explain_human_assoc(result, op_symbol="∪", ascii_only=False):
     out.append("  Result: {0}".format(status))
     return "\n".join(out)
 
+def explain_human_distrib(result, outer_symbol, inner_symbol, ascii_only=False):
+    """Readable explanation for distributive results."""
+    lhs_s = _set_str(result["lhs"])
+    rhs_s = _set_str(result["rhs"])
+    if ascii_only:
+        # ASCII words
+        lhs_desc = "A {0} (B {1} C)".format("union" if outer_symbol=="∪" else "intersect",
+                                            "union" if inner_symbol=="∪" else "intersect")
+        rhs_desc = "(A {0} B) {1} (A {0} C)".format("union" if outer_symbol=="∪" else "intersect",
+                                                    "union" if inner_symbol=="∪" else "intersect")
+    else:
+        lhs_desc = "A " + outer_symbol + " (B " + inner_symbol + " C)"
+        rhs_desc = "(A " + outer_symbol + " B) " + inner_symbol + " (A " + outer_symbol + " C)"
+    status = "HOLDS ✅" if result["holds"] else "DOES NOT HOLD ❌"
+    out = []
+    out.append("{0}:".format(result["law"]))
+    out.append("  LHS = {0} = {1}".format(lhs_desc, lhs_s))
+    out.append("  RHS = {0} = {1}".format(rhs_desc, rhs_s))
+    out.append("  Result: {0}".format(status))
+    return "\n".join(out)
+
 
 # -------------------------
-# LaTeX formatters (no .format — safe in CodeSkulptor3)
+# LaTeX formatters (concise, “a couple steps”; built by concatenation)
 # -------------------------
 
 def latex_demorgan_union(U, X, Y, Xname="X", Yname="Y"):
@@ -122,7 +157,6 @@ def latex_demorgan_union(U, X, Y, Xname="X", Yname="Y"):
     Yn = _latex_escape(Yname)
     lhs_tex = _set_latex(lhs)
     rhs_tex = _set_latex(rhs)
-    # Build by concatenation to avoid placeholder issues
     s  = ""
     s += "\\[\n"
     s += "\\begin{aligned}\n"
@@ -182,34 +216,82 @@ def latex_associativity_intersection(A, B, C):
     s += "\\]\n"
     return s
 
+# --- NEW: LaTeX for distributive laws ---
+
+def latex_distrib_union_over_intersection(A, B, C):
+    lhs = A | (B & C)
+    rhs = (A | B) & (A | C)
+    lhs_tex = _set_latex(lhs)
+    rhs_tex = _set_latex(rhs)
+    s  = ""
+    s += "\\[\n"
+    s += "\\begin{aligned}\n"
+    s += "A \\cup (B \\cap C)\n"
+    s += "&= (A \\cup B) \\cap (A \\cup C) && \\text{distributive law}\\\\[2pt]\n"
+    s += "&= " + lhs_tex + " \\quad\\text{and}\\quad " + rhs_tex + " && \\text{compute both sides}\\\\\n"
+    s += "&\\text{so the sets are equal.}\n"
+    s += "\\end{aligned}\n"
+    s += "\\]\n"
+    return s
+
+def latex_distrib_intersection_over_union(A, B, C):
+    lhs = A & (B | C)
+    rhs = (A & B) | (A & C)
+    lhs_tex = _set_latex(lhs)
+    rhs_tex = _set_latex(rhs)
+    s  = ""
+    s += "\\[\n"
+    s += "\\begin{aligned}\n"
+    s += "A \\cap (B \\cup C)\n"
+    s += "&= (A \\cap B) \\cup (A \\cap C) && \\text{distributive law}\\\\[2pt]\n"
+    s += "&= " + lhs_tex + " \\quad\\text{and}\\quad " + rhs_tex + " && \\text{compute both sides}\\\\\n"
+    s += "&\\text{so the sets are equal.}\n"
+    s += "\\end{aligned}\n"
+    s += "\\]\n"
+    return s
+
 
 # -------------------------
-# Convenience runners
+# Convenience runners (integrated)
 # -------------------------
 
 def test_all(U, A, B, C, ascii_only=False):
-    """Print human-readable checks for the requested laws."""
+    """Print human-readable checks for De Morgan (pairs), associativity, and distributive laws."""
+    # De Morgan on each pair (A,B), (A,C), (B,C)
     pairs = [(A, B, "A", "B"), (A, C, "A", "C"), (B, C, "B", "C")]
     for X, Y, Xn, Yn in pairs:
         print(explain_human_demorgan(demorgan_union(U, X, Y), Xn, Yn, ascii_only))
         print()
         print(explain_human_demorgan(demorgan_intersection(U, X, Y), Xn, Yn, ascii_only))
         print("\n" + "-" * 50 + "\n")
+
+    # Associativity on A, B, C
     print(explain_human_assoc(associativity_union(A, B, C), "∪", ascii_only))
     print()
     print(explain_human_assoc(associativity_intersection(A, B, C), "∩", ascii_only))
+    print("\n" + "-" * 50 + "\n")
+
+    # Distributive laws
+    print(explain_human_distrib(distributive_union_over_intersection(A, B, C), "∪", "∩", ascii_only))
+    print()
+    print(explain_human_distrib(distributive_intersection_over_union(A, B, C), "∩", "∪", ascii_only))
 
 def latex_all(U, A, B, C):
-    """Return a single LaTeX string with concise solutions."""
+    """Return a single LaTeX string with concise solutions for all requested laws."""
     pieces = []
+    # De Morgan
     pieces.append(latex_demorgan_union(U, A, B, "A", "B"))
     pieces.append(latex_demorgan_intersection(U, A, B, "A", "B"))
     pieces.append(latex_demorgan_union(U, A, C, "A", "C"))
     pieces.append(latex_demorgan_intersection(U, A, C, "A", "C"))
     pieces.append(latex_demorgan_union(U, B, C, "B", "C"))
     pieces.append(latex_demorgan_intersection(U, B, C, "B", "C"))
+    # Associativity
     pieces.append(latex_associativity_union(A, B, C))
     pieces.append(latex_associativity_intersection(A, B, C))
+    # Distributive (NEW)
+    pieces.append(latex_distrib_union_over_intersection(A, B, C))
+    pieces.append(latex_distrib_intersection_over_union(A, B, C))
     return ("\n\n% ---\n\n").join(pieces)
 
 
@@ -217,15 +299,16 @@ def latex_all(U, A, B, C):
 # Example usage (adjust or remove)
 # -------------------------
 if __name__ == "__main__":
+    # Define your universe and subsets
     U = set(range(1, 13))
     A = {1, 2, 3, 6}
     B = {2, 4, 6, 8}
     C = {1, 5, 6, 9, 10}
 
-    # Human-readable checks (use ascii_only=True if your console dislikes Unicode)
+    # Human-readable checks (set ascii_only=True if your console dislikes Unicode)
     test_all(U, A, B, C, ascii_only=False)
 
-    # LaTeX blocks to paste into solutions
+    # LaTeX blocks to paste into a solution key
     tex = latex_all(U, A, B, C)
     print("\n" + "=" * 60 + "\nLATEX OUTPUT:\n")
     print(tex)

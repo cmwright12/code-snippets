@@ -71,6 +71,30 @@ def get_latex_summary(U, A, B, C):
     lines.append(r"\end{itemize}")
     return "\n".join(lines)
 
+def get_union_cardinality_latex(name1, name2, s1, s2):
+    """
+    Calculates union cardinality and returns the step-by-step 
+    LaTeX derivation using the Inclusion-Exclusion Principle.
+    """
+    card_s1 = len(s1)
+    card_s2 = len(s2)
+    intersection = s1.intersection(s2)
+    card_int = len(intersection)
+    card_union = len(s1.union(s2))
+    print()
+    
+    latex_steps = [
+        r"\textbf{Step-by-Step Union Calculation:}",
+        r"\begin{enumerate}",
+        f"    \\item Apply the Inclusion-Exclusion Principle: $|{name1} \\cup {name2}| = |{name1}| + |{name2}| - |{name1} \\cap {name2}|$",
+        f"    \\item Substitute the cardinalities: $|{name1} \\cup {name2}| = {card_s1} + {card_s2} - {card_int}$",
+        f"    \\item Simplify: $|{name1} \\cup {name2}| = {card_s1 + card_s2} - {card_int}$",
+        f"    \\item Result: $|{name1} \\cup {name2}| = {card_union}$",
+        r"\end{enumerate}"
+    ]
+    
+    return "\n".join(latex_steps)
+
 def main():
     # Define your Universal set and subsets here
     U = set(range(1, 10))
@@ -85,6 +109,9 @@ def main():
     
     print("\n\n% --- Copy and Paste the LaTeX code below ---")
     print(latex_output)
-
+    
+    result = get_union_cardinality_latex("A", "B", A, B)
+    print(result)
+    
 if __name__ == "__main__":
     main()

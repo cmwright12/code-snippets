@@ -1,4 +1,4 @@
-#gap
+%%gap
 # Cosets: Permutations
 s:=(1,2,4,3); H:=[(), (1,4,3), (1,3,4)];
 cycle:=[(), s, s^2, s^3];

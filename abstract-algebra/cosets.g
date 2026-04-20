@@ -15,3 +15,16 @@ Determinant(g) mod n;
 gi:=g^-1 mod n;
 C:=List(H, h -> g * h * g^-1 mod n);
 C;
+
+# Sage
+G = SymmetricGroup(5)
+#G = SL(2,5)
+Hs = G.subgroups()
+Hlist = []
+for H in Hs:
+    if H.order() == 3:
+        Hlist.append(H)
+for h in Hlist:
+    for x in list(h):
+        print(x,",")
+    print("\n")

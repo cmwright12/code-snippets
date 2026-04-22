@@ -28,3 +28,17 @@ for h in Hlist:
     for x in list(h):
         print(x,",")
     print("\n")
+
+n = 7
+G = GL(2,n)
+A = G.random_element()
+A = matrix(Integers(n), A)
+A = matrix(Integers(n), [[2,4],[3,0]])
+print(A)
+print(det(A))
+for a in range(n):
+    for b in range(n):
+        if (a*b) % n == 1:
+            print(a, b, a*b % n)
+print(A.inverse())
+
